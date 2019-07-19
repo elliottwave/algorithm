@@ -1,2 +1,120 @@
 # algorithm
 Algorithm
+Overview
+
+Bollinger Band buy / sell signals
+# Disclaimer: This algorithm is a proof of concept and exemplifies the
+# mechanics of creating a strategy based on certain indicators, candle
+# patterns, and/or statistical models. This strategy is currently a work
+# in progress and we recommend varying the parameters of this strategy
+# and/or building on top of it before deploying it to the live markets
+# (you should always ensure that backtests indicate a profitable strategy
+# before deploying any strategy live).
+
+# youtube: biSv6994rpY
+
+
+"""
+## Strategy summary:
+
+This strategy computes the mean and standard deviation (std):
+
+1) The mean is calculated over `WINDOW_MEAN` closing prices
+2) The std is calculated over `WINDOW_STD` closing prices
+
+This strategy buys when the current closing price:
+
+`closing_price < mean_ + STD_MULTIPLE_LOWER * std_`
+
+and sells when:
+`closing_price > mean_ + STD_MULTIPLE_UPPER * std_`
+
+
+"""
+
+
+# Imports
+import pandas as pd
+import numpy as np
+from cryzen import plot, param
+# Exchange, symbol to trade, and starting capital
+EXCHANGE_NAME  = param('crix', type='dropdown', values='crix')
+SYMBOL_NAME    = param("eth_btc", type='dropdown', values=['ltc_btc', 'eth_btc', 'xrp_btc', 'xlm_btc', 'bch_btc'])
+CAPITAL_BASE   = param(1, type='num', values=[0.1,.1,10]) # Units in `QUOTE_CURRENCY` below
+QUOTE_CURRENCY = 'btc'
+
+
+# Trading frequency, and time range to backtest over
+# choices: 'minute', or 'daily'
+DATA_FREQUENCY = param('daily', type='dropdown', values=['daily'])
+
+
+START_TIME = pd.to_datetime('2019-01-01', utc=True)
+END_TIME = pd.to_datetime('2019-06-01', utc=True)
+
+
+# Strategy Parameters
+WINDOW_MEAN        = param(60, type='num', values=[10,1,120])
+WINDOW_STD         = param(120, type='num', values=[10,1,120])
+STD_MULTIPLE_UPPER = param(1.0, type='num', values=[0,0.1,5])
+STD_MULTIPLE_LOWER = param(-0.5, type='num', values=[-5,0.1,0])
+
+
+# Internal Parameters
+BOUGHT = False
+
+
+# `initialize` runs once before the start of a strategy
+# (for both backtests and live deployments).
+#
+# `context` is a shared variable between the various
+# functions in this script.
+def initialize(context):
+    # `context.asset` can be accessed from other
+    # functions involved in this strategy such as `handle_data`
+    # Feel free to define `context.anything = whatever`
+    context.asset = symbol(SYMBOL_NAME)
+    # `handle_data` runs every time there is a new complete candle
+# (contained in the `data` argument).
+#
+# If `DATA_FREQUENCY` above is set to 'minute', `handle_data` will
+# get called at the end of every minute; if it is set to 'daily'
+# it will get called at the end of every day (UTC time).
+def handle_data(context, data):
+    
+    global BOUGHT
+    
+    # Get data
+    historical_data = data.history(
+        context.asset,
+        bar_count=(max(WINDOW_MEAN, WINDOW_STD) + 1),
+        fields=['price', 'open', 'high', 'low', 'close', 'volume'],
+        frequency='1D')
+
+    # Calculate indicators
+    # Mean & standard deviation
+    mean_ = np.mean(historical_data['close'][-WINDOW_MEAN:])
+    std_  = np.std(historical_data['close'][-WINDOW_STD:])
+    
+    # Upper and lower band
+    upper_band = mean_ + STD_MULTIPLE_UPPER * std_
+    lower_band = mean_ + STD_MULTIPLE_LOWER * std_
+    price      = historical_data['close'].iloc[-1]
+    
+    plot(context, close=price)
+    plot(context, mean=mean_)
+    plot(context, upper_band=upper_band)
+    plot(context, lower_band=lower_band)
+    
+    # Buy & Sell
+    if (not BOUGHT) and (price < lower_band):
+        order_target_percent(context.asset, 1)
+        BOUGHT = True
+        if BOUGHT and (price > upper_band):
+        order_target_percent(context.asset, 0)
+        BOUGHT = False
+    
+
+# `analyze_live` runs on every iteration of a
+# live algorithm (does not run for backtests).
+def analyze_live(context, results):
