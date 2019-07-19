@@ -1,6 +1,5 @@
 # algorithm
-Algorithm
-Overview
+Algorithm Overview
 
 Bollinger Band buy / sell signals
 # Disclaimer: This algorithm is a proof of concept and exemplifies the
