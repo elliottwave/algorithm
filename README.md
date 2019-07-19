@@ -1,4 +1,4 @@
-# algorithm coded in Python
+# algorithm coded in Python for trading
 Algorithm Overview
 
 Bollinger Band buy / sell signals
