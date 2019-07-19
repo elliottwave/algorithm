@@ -12,5 +12,5 @@ Bollinger Band buy / sell signals
 
 https://dollarsandsense.sg/5-programming-languages-you-should-know-if-you-are-an-aspiring-trader/
 https://www.quora.com/What-is-the-best-programming-language-for-algorithmic-trading-systems
-
+https://blog.quantinsti.com/python-trading/
 """
