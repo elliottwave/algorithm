@@ -10,7 +10,7 @@ Bollinger Band buy / sell signals
 # (you should always ensure that backtests indicate a profitable strategy
 # before deploying any strategy live).
 
-# youtube: biSv6994rpY
-
+https://dollarsandsense.sg/5-programming-languages-you-should-know-if-you-are-an-aspiring-trader/
+https://www.quora.com/What-is-the-best-programming-language-for-algorithmic-trading-systems
 
 """
