@@ -118,3 +118,4 @@ def handle_data(context, data):
 # `analyze_live` runs on every iteration of a
 # live algorithm (does not run for backtests).
 def analyze_live(context, results):
+pass
